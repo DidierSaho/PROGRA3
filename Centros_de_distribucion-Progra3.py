@@ -190,13 +190,15 @@ nodos_verticales = list(range(0, 50))     # Nodos 0 a 49
 # Crear matriz de distancias
 matriz_distancias = [[float('inf')] * len(nodos_horizontales) for _ in range(len(nodos_verticales))]
 
+
 # Llenar la matriz de distancias
 for j, nodo_h in enumerate(nodos_horizontales):
     distancias_desde_nodo_h = dijkstra(grafo, nodo_h)
     for i, nodo_v in enumerate(nodos_verticales):
         matriz_distancias[i][j] = distancias_desde_nodo_h.get(nodo_v, float('inf'))
-
-
+#la 1,2,7
+# for cadaCentro in matriz_distancias:
+#     print(cadaCentro,end='\n')
 #--------------Generar combinaciones de centros de distribución-----------
 nodos_centros = [50, 51, 52, 53, 54, 55, 56, 57]
 
@@ -214,28 +216,114 @@ def generar_combinaciones(nodo_actual, combinacion_actual, todas_combinaciones):
 todas_combinaciones = []
 generar_combinaciones(0, [], todas_combinaciones)
 
+# for cadaCombinacion  in todas_combinaciones:
+#     print( cadaCombinacion,end='\n')
 # Encontrar la mejor combinación de centros activos
 mejor_combinacion = None
 mejor_suma_total = float('inf')
 
+# Diccionario con el volumen de producción de cada cliente (nodo vertical)
+volumen_por_cliente = {
+    0: 10, 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 10, 8: 10, 9: 10,
+    10: 10, 11: 10, 12: 10, 13: 10, 14: 10, 15: 10, 16: 10, 17: 10, 18: 10, 19: 10,
+    20: 10, 21: 10, 22: 10, 23: 10, 24: 10, 25: 10, 26: 10, 27: 10, 28: 10, 29: 10,
+    30: 10, 31: 10, 32: 10, 33: 10, 34: 10, 35: 10, 36: 10, 37: 10, 38: 10, 39: 10,
+    40: 10, 41: 10, 42: 10, 43: 10, 44: 10, 45: 10, 46: 10, 47: 10, 48: 10, 49: 10
+}
+
+# Evaluación de combinaciones
 for combinacion in todas_combinaciones:
     suma_total = 0
+    centros_activos = [idx for idx, activo in enumerate(combinacion) if activo]
+
+    # Revisar si hay al menos un centro activo
+    if len(centros_activos) <= 1:
+        continue
+
+    # Costo de activación de cada centro activo
+    for h, centro in enumerate(combinacion):
+        if centro:
+            # Asignar cta según el centro activo
+            if h == 0:
+                cta = 2300
+            elif h == 1:
+                cta = 1900
+            elif h == 2:
+                cta = 1500
+            elif h == 3:
+                cta = 2000
+            elif h == 4:
+                cta = 2700
+            elif h == 5:
+                cta = 2500
+            elif h == 6:
+                cta = 3000
+            else:
+                cta = 500
+            suma_total += cta
+
+    # Calcular distancia ponderada por volumen para cada nodo vertical
     for i, nodo_v in enumerate(nodos_verticales):
         dist_minima = float('inf')
+        
+        # Volumen específico del cliente
+        volumen_cliente = volumen_por_cliente.get(nodo_v, 0)
+        
+        # Comparar con cada centro activo en la combinación
         for j, centro_activo in enumerate(combinacion):
             if centro_activo:
-                if j==0 or j==1 or j==2:
-                    cap=3
-                if j==3 or j==4 or j==5:
-                    cap=2
-                if j==6 or j==7:
-                    cap=1
-                dist_minima = min(dist_minima, (matriz_distancias[i][j]+(cap)))
+                if j == 0:
+                    cap = 3
+                elif j == 1:
+                    cap = 3
+                elif j == 2:
+                    cap = 3
+                elif j == 3:
+                    cap = 2
+                elif j == 4:
+                    cap = 2
+                elif j == 5:
+                    cap = 2
+                elif j == 6:
+                    cap = 1
+                suma_total += cap
+                dist_minima = min(dist_minima, matriz_distancias[i][j] * volumen_cliente)
+        
+        # Sumar la mínima distancia ponderada por volumen
         suma_total += dist_minima
+
+    # Evaluar si es la mejor combinación
     if suma_total < mejor_suma_total:
         mejor_suma_total = suma_total
         mejor_combinacion = combinacion
 
-# Imprimir el resultado óptimo
 print("Mejor combinación de centros activos:", mejor_combinacion)
 print("Suma total mínima de distancias:", mejor_suma_total)
+
+
+#Objetivo 2: A qué centro de distribución debe enviar cada cliente su materia prima.
+for i, nodo_v in enumerate(nodos_verticales):
+    minimo = float('inf')
+    for j, centro_activo in enumerate(mejor_combinacion):
+        if j == 0:
+            cap = 3
+        elif j == 1:
+            cap = 3
+        elif j == 2:
+            cap = 3
+        elif j == 3:
+            cap = 2
+        elif j == 4:
+            cap = 2
+        elif j == 5:
+            cap = 2
+        elif j == 6:
+            cap = 1
+        if centro_activo:
+            if (matriz_distancias[i][j]+cap)<minimo:
+                minimo=(matriz_distancias[i][j]+cap)
+                centro_minimo=j
+    print("El cliente",i,"debe enviar la materia prima al centro",centro_minimo+50)    
+
+
+
